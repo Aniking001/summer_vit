@@ -37,6 +37,7 @@ class HeartRateLockGUI:
         self.lock_btn = None
         self.unlock_btn = None
         self.monitor_btn = None
+        self.delete_profile_btn = None
         self.canvas = None
         self.ax = None
         self.ani = None
@@ -120,6 +121,14 @@ class HeartRateLockGUI:
         self.unlock_btn = ttk.Button(button_frame, text="🔓 Unlock System", 
                                     command=self.unlock_system)
         self.unlock_btn.pack(fill="x", pady=5)
+        
+        # Profile management buttons
+        profile_frame = ttk.LabelFrame(control_frame, text="Profile Management", padding="10")
+        profile_frame.pack(fill="x", pady=(15, 0))
+        
+        self.delete_profile_btn = ttk.Button(profile_frame, text="🗑️ Delete Profile", 
+                                           command=self.delete_profile, style='Danger.TButton')
+        self.delete_profile_btn.pack(fill="x", pady=5)
         
         # Settings frame
         settings_frame = ttk.LabelFrame(control_frame, text="Settings", padding="10")
@@ -446,6 +455,31 @@ class HeartRateLockGUI:
         else:
             messagebox.showwarning("Warning", "Please wait for calibration to complete!")
             
+    def delete_profile(self):
+        """Delete user profile"""
+        if messagebox.askyesno("Delete Profile", 
+                              "Are you sure you want to delete the user profile?\n"
+                              "This action cannot be undone.\n\n"
+                              "Continue?"):
+            try:
+                # Delete profile file
+                if os.path.exists('heart_rate_profiles.pkl'):
+                    os.remove('heart_rate_profiles.pkl')
+                    self.log_message("🗑️ User profile deleted successfully")
+                    self.update_status("🗑️ Profile Deleted", "orange")
+                    messagebox.showinfo("Success", "User profile has been deleted!")
+                else:
+                    self.log_message("⚠️ No profile file found to delete")
+                    messagebox.showinfo("Info", "No profile file found to delete")
+                    
+                # Reset system state
+                self.is_locked = True
+                self.update_button_states()
+                
+            except Exception as e:
+                self.log_message(f"❌ Error deleting profile: {e}")
+                messagebox.showerror("Error", f"Failed to delete profile: {e}")
+                
     def update_button_states(self):
         """Update button states based on system state"""
         if self.is_calibrating:
